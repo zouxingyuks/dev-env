@@ -9,12 +9,13 @@
 | 层           | 负责方                          | 职责                                                                        |
 | ------------ | ------------------------------- | --------------------------------------------------------------------------- |
 | 容器基础层   | `dev-env`                       | OS 镜像、`dev` 用户、基础 CLI 工具、`zsh`、`mise`、`chezmoi`、Docker Engine |
-| 个人偏好层   | 已有 dotfiles 仓库              | shell 启动、alias、prompt、插件、Git 偏好、`mise activate`                  |
+| Shell 配置层 | `dev-env`                       | Oh My Zsh、主题、插件、`.zshrc`、Git 偏好、`mise activate`                  |
+| 个人偏好层   | 已有 dotfiles 仓库              | 用户个人 alias、额外工具配置和其他非 shell 偏好                             |
 | 项目环境层   | 各项目仓库                      | `mise.toml`、`mise.lock`、语言版本、项目任务和依赖                          |
 | Agent 环境层 | `ai-agent-config`               | agent 规则、skills、MCP servers、权限和 agent 状态                          |
 | 客户端集成层 | JetBrains、VS Code 或其他调用方 | 源码位置、工作区、IDE 设置和信任目录                                        |
 
-不要因为某个项目需要某个工具，就把它直接放入基础镜像。不要把个人 dotfiles 内容复制到本仓库。只有当 agent 层的运行契约明确且可以独立验证时，才增加 agent 集成。
+不要因为某个项目需要某个工具，就把它直接放入基础镜像。统一 shell 配置由本仓库维护；个人 dotfiles 不应覆盖 `.zshrc`、Oh My Zsh 或统一插件。只有当 agent 层的运行契约明确且可以独立验证时，才增加 agent 集成。
 
 ## 仓库组件
 
@@ -27,10 +28,11 @@
 3. OS 层安装所有环境都会用到的基础包。
 4. 身份层创建非 root 的 `dev` 用户和持久化 home。
 5. `mise` 层安装项目工具管理器。
-6. `chezmoi` 层只安装 dotfiles 管理器，不在构建镜像时访问私有仓库。
-7. Docker 层从官方 Debian 仓库安装固定版本的 Engine、CLI、containerd、Compose 和 Buildx。
-8. 入口脚本启动独立 `dockerd`，等待就绪后执行用户命令；停止时清理子进程。
-9. 后续 agent 配置或语言运行时必须保持独立分层。
+6. Shell 层安装固定提交的 Oh My Zsh 和插件，并由入口脚本同步仓库维护的 `.zshrc`。
+7. `chezmoi` 层只安装个人 dotfiles 管理器，不负责覆盖统一 shell 配置。
+8. Docker 层从官方 Debian 仓库安装固定版本的 Engine、CLI、containerd、Compose 和 Buildx。
+9. 入口脚本启动独立 `dockerd`，等待就绪后执行用户命令；停止时清理子进程。
+10. 后续 agent 配置或语言运行时必须保持独立分层。
 
 有稳定发布资产时，应固定网络下载的版本。版本参数放在文件顶部，便于审查和升级。
 
@@ -95,7 +97,7 @@ Docker 的镜像、容器和 volumes 由独立的 Docker data volumes 持久化�
 
 1. 它是所有项目都需要，还是只有一个项目需要？
 2. 它属于 OS 基础层、dotfiles、项目配置、agent 配置还是 IDE 客户端？
-3. 现有的 `mise` 或 dotfiles 层能否完成这件事？
+3. 现有的 `mise` 或配置层能否完成这件事？
 4. 它是否需要凭据、宿主挂载、Docker socket 或客户端设置？
 5. 是否可以不依赖私有仓库和个人 secret 完成构建与验证？
 

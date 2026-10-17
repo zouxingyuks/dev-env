@@ -6,6 +6,9 @@ ARG DOCKER_VERSION=29.9.1
 ARG CONTAINERD_VERSION=2.2.6
 ARG BUILDX_VERSION=0.38.0
 ARG COMPOSE_VERSION=5.6.0
+ARG OH_MY_ZSH_COMMIT=964ddf789b022b6958b27d02d7fa54f552de21e9
+ARG ZSH_AUTOSUGGESTIONS_COMMIT=85919cd1ffa7d2d5412f6d3fe437ebdbeeec4fc5
+ARG ZSH_SYNTAX_HIGHLIGHTING_COMMIT=e6683f20e5c38d3e5447f45845d04ddda75d0f23
 
 FROM ghcr.io/jdx/mise:${MISE_VERSION} AS mise-image
 
@@ -19,6 +22,9 @@ ARG DOCKER_VERSION
 ARG CONTAINERD_VERSION
 ARG BUILDX_VERSION
 ARG COMPOSE_VERSION
+ARG OH_MY_ZSH_COMMIT
+ARG ZSH_AUTOSUGGESTIONS_COMMIT
+ARG ZSH_SYNTAX_HIGHLIGHTING_COMMIT
 
 ENV DEBIAN_FRONTEND=noninteractive \
     HOME=/home/${USERNAME} \
@@ -99,13 +105,32 @@ RUN if getent group "${USER_GID}" >/dev/null; then \
     && chmod 0440 "/etc/sudoers.d/${USERNAME}" \
     && usermod --append --groups docker "${USERNAME}" \
     && mkdir -p "/home/${USERNAME}/items" "/home/${USERNAME}/.dev-env/state" \
+        "/home/${USERNAME}/.cache" "/home/${USERNAME}/.local" "/home/${USERNAME}/.config" \
     && chown -R "${USER_UID}:${USER_GID}" "/home/${USERNAME}"
 
 # Project tool manager layer: project runtimes and tasks belong in per-repo mise.toml.
 COPY --from=mise-image /usr/local/bin/mise /usr/local/bin/mise
 RUN mise --version
 
-# Dotfiles manager layer: install chezmoi only; applying private dotfiles is first-run state.
+# Shell layer: keep the Oh My Zsh distribution and plugins in the image so the
+# persistent home volume cannot replace the repository-owned shell baseline.
+RUN git clone --depth 1 https://github.com/ohmyzsh/ohmyzsh.git /usr/local/share/oh-my-zsh \
+    && cd /usr/local/share/oh-my-zsh \
+    && git fetch --depth 1 origin "${OH_MY_ZSH_COMMIT}" \
+    && git checkout --detach "${OH_MY_ZSH_COMMIT}" \
+    && git clone --depth 1 https://github.com/zsh-users/zsh-autosuggestions.git \
+        /usr/local/share/oh-my-zsh/custom/plugins/zsh-autosuggestions \
+    && cd /usr/local/share/oh-my-zsh/custom/plugins/zsh-autosuggestions \
+    && git fetch --depth 1 origin "${ZSH_AUTOSUGGESTIONS_COMMIT}" \
+    && git checkout --detach "${ZSH_AUTOSUGGESTIONS_COMMIT}" \
+    && git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting.git \
+        /usr/local/share/oh-my-zsh/custom/plugins/zsh-syntax-highlighting \
+    && cd /usr/local/share/oh-my-zsh/custom/plugins/zsh-syntax-highlighting \
+    && git fetch --depth 1 origin "${ZSH_SYNTAX_HIGHLIGHTING_COMMIT}" \
+    && git checkout --detach "${ZSH_SYNTAX_HIGHLIGHTING_COMMIT}"
+COPY config/zsh/.zshrc /usr/local/share/dev-env/zshrc
+
+# Dotfiles manager layer: install chezmoi for non-shell personal files.
 RUN curl --fail --show-error --silent --location --retry 3 --retry-delay 2 --http1.1 \
         "https://github.com/twpayne/chezmoi/releases/download/v${CHEZMOI_VERSION}/chezmoi_${CHEZMOI_VERSION}_linux-glibc_amd64.tar.gz" \
         | tar --extract --gzip --directory /usr/local/bin chezmoi \

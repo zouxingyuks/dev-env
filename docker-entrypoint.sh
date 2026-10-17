@@ -5,6 +5,15 @@ if [[ "$(id -u)" != 0 ]]; then
 	exec sudo --preserve-env env "DEVBOX_USER=$(id -un)" "$0" "$@"
 fi
 
+install -d --owner="${DEVBOX_USER:-dev}" --group="${DEVBOX_USER:-dev}" \
+	"/home/${DEVBOX_USER:-dev}/.cache" \
+	"/home/${DEVBOX_USER:-dev}/.config" \
+	"/home/${DEVBOX_USER:-dev}/.local" \
+	"/home/${DEVBOX_USER:-dev}/.local/share" \
+	"/home/${DEVBOX_USER:-dev}/.local/state"
+install --owner="${DEVBOX_USER:-dev}" --group="${DEVBOX_USER:-dev}" \
+	/usr/local/share/dev-env/zshrc "/home/${DEVBOX_USER:-dev}/.zshrc"
+
 cleanup() {
 	trap '' TERM INT
 	kill -TERM "${COMMAND_PID:-}" "${DOCKERD_PID:-}" 2>/dev/null || true

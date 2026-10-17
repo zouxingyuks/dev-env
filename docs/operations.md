@@ -105,7 +105,9 @@ cp .env.example .env
 
 ## 首次应用 dotfiles
 
-镜像包含 `chezmoi`，但 `docker build` 阶段绝不会访问私有 dotfiles 仓库。源码仓库在容器内可用后，显式初始化并应用：
+镜像在构建阶段固定安装 Oh My Zsh 和两个 shell 插件。容器入口每次启动都会把仓库中的统一 `.zshrc` 同步到持久化 home，因此重建镜像后不会继续使用旧的 shell 配置。
+
+`chezmoi` 仍可用于个人非 shell 文件，但不应覆盖 `.zshrc`、Oh My Zsh 或统一插件配置。源码仓库在容器内可用后，可以显式初始化并应用其他文件：
 
 ```sh
 chezmoi init --source "$HOME/items/dotfiles"
@@ -114,7 +116,7 @@ chezmoi apply --source "$HOME/items/dotfiles"
 
 如果 dotfiles 源码是私有仓库且没有通过挂载目录提供，需要先配置 Git 或 SSH 认证，再执行 `chezmoi init`。不要把 token 写进 `Dockerfile`、Compose 文件或 Git 仓库。
 
-已有 dotfiles 仓库继续负责 `.zshrc`、`.zshenv`、插件、alias、prompt 配置和 `mise activate`。
+仓库统一维护 Oh My Zsh 的主题、插件、更新策略、`.zshrc` 和 `mise activate`。个人 dotfiles 不应重新声明这些内容。
 
 ## 使用 `mise` 管理项目工具
 
@@ -143,7 +145,7 @@ docker compose config --quiet
 docker compose build
 docker compose up -d
 docker compose exec -T devbox sh -lc \
-  'id; pwd; command -v mise; command -v chezmoi; zsh --version'
+  'id; pwd; command -v mise; command -v chezmoi; zsh --version; zsh -lic "print -l $ZSH $plugins"'
 ```
 
 另外确认：
@@ -166,7 +168,7 @@ docker compose exec -T devbox sh -lc \
 
 ### 在构建镜像时安装私有 dotfiles
 
-这会失败，因为构建镜像时没有用户的 GitHub 或 SSH 凭据。镜像中只安装 `chezmoi`，等运行时凭据或源码挂载可用后再应用 dotfiles。
+这会失败，因为构建镜像时没有用户的 GitHub 或 SSH 凭据。统一 Oh My Zsh 和 shell 插件不依赖私有仓库；个人 dotfiles 仍应等运行时凭据或源码挂载可用后再由 `chezmoi` 应用。
 
 ### 把 `mise` 状态写入 root 拥有的系统目录
 
