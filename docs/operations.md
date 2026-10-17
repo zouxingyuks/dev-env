@@ -38,6 +38,8 @@ docker compose logs tailscale
 `devbox` 使用 `privileged: true`，入口脚本自动启动独立的 Docker Engine。
 日常 shell 仍以 `dev` 运行，可以直接使用 `docker`、`docker compose` 和 Buildx。
 Docker 使用本容器的 Unix socket，不挂载宿主机 Docker socket。
+如果 JetBrains 或 Dev Containers 客户端复用了旧容器，必须重建该容器，确保
+Compose 中的 `entrypoint` 生效；仅重新连接不会启动新的 `dockerd`。
 
 在容器内验证：
 

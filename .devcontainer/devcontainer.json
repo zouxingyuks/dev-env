@@ -3,6 +3,7 @@
   "dockerComposeFile": "../docker-compose.yml",
   "service": "devbox",
   "runServices": ["devbox"],
+  "overrideCommand": false,
   "workspaceFolder": "/home/dev/items/dev-env",
   "remoteUser": "dev",
   "shutdownAction": "none",
