@@ -1,0 +1,10 @@
+# The image only copies the files explicitly re-included below.
+*
+!.dockerignore
+!Dockerfile
+!docker-entrypoint.sh
+!config/
+!config/zsh/
+!config/zsh/.zshrc
+!config/docker/
+!config/docker/pass-helper
