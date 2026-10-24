@@ -56,6 +56,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         gnupg \
         iputils-ping \
         jq \
+        keychain \
         less \
         openssh-client \
         pass \
@@ -64,6 +65,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         tar \
         unzip \
         vim \
+        xdg-utils \
         zsh
 
 # Docker Engine runs as an independent daemon inside the privileged devbox.
