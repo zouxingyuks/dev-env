@@ -6,9 +6,6 @@
   "overrideCommand": false,
   "workspaceFolder": "/home/dev/items/dev-env",
   "remoteUser": "dev",
-  "containerEnv": {
-    "XDG_CONFIG_HOME": "/home/dev/.config"
-  },
   "shutdownAction": "none",
   "customizations": {
     "jetbrains": {
@@ -17,7 +14,8 @@
         "com.samvtran.plugins.macosforallkeymap",
         "Key Promoter X",
         "com.intellij.minimap",
-        "cn.yiiguxing.plugin.translate"
+        "cn.yiiguxing.plugin.translate",
+        "com.github.copilot"
       ]
     }
   }
