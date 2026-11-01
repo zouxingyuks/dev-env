@@ -12,12 +12,14 @@
   "shutdownAction": "none",
   "customizations": {
     "jetbrains": {
+      "backend": "GoLand",
       "plugins": [
         "com.intellij.zh",
         "com.samvtran.plugins.macosforallkeymap",
         "Key Promoter X",
         "com.intellij.minimap",
-        "cn.yiiguxing.plugin.translate"
+        "cn.yiiguxing.plugin.translate",
+        "com.github.copilot"
       ]
     }
   }
